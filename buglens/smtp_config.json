@@ -1,0 +1,8 @@
+{
+  "SMTP_HOST": "smtp.gmail.com",
+  "SMTP_PORT": "587",
+  "SMTP_USERNAME": "harshithp914@gmail.com",
+  "SMTP_PASSWORD": "ljon zjkv vyvn txum",
+  "SMTP_FROM": "harshithp914@gmail.com",
+  "SMTP_USE_TLS": "true"
+}

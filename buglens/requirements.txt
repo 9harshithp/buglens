@@ -1,0 +1,18 @@
+# BugLens — Defect Quality Checker
+# Tested with Python 3.10+
+
+streamlit>=1.32.0
+pandas>=2.0.0
+plotly>=5.18.0
+openai>=1.30.0
+# Optional but enabled in the PRD — used for offline grammar hints.
+language-tool-python>=2.7.1
+
+# API / web server
+fastapi>=0.104.1
+starlette<1.0
+uvicorn>=0.23.0
+
+# Dev / test
+pytest>=8.0.0
+pytest-cov>=4.1.0

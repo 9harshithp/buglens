@@ -1,0 +1,104 @@
+{
+  "info": {
+    "name": "BugLens — Defect Quality Checker API",
+    "description": "REST API for the BugLens defect quality checker. Endpoints cover validation, scoring, and full analysis. The collection ships with a strong / mediocre / failing sample so you can demo each tier in seconds.\n\nImport instructions: Postman → File → Import → select this file. Set the `baseUrl` variable to `http://127.0.0.1:8001` (or your deployed host).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {"key": "baseUrl", "value": "http://127.0.0.1:8001", "type": "string"}
+  ],
+  "item": [
+    {
+      "name": "1. Health check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/health",
+          "host": ["{{baseUrl}}"],
+          "path": ["health"]
+        }
+      }
+    },
+    {
+      "name": "2. Validate (issues only)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Login broken\",\n  \"description\": \"it doesnt work properly somehow maybe\",\n  \"steps_to_reproduce\": \"try login. it breaks.\",\n  \"expected_result\": \"works\",\n  \"actual_result\": \"broken\",\n  \"environment\": \"prod\",\n  \"severity\": \"\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/validate",
+          "host": ["{{baseUrl}}"],
+          "path": ["validate"]
+        }
+      }
+    },
+    {
+      "name": "3. Score (quality only)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Checkout total wrong when applying 10% coupon on cart > 5 items\",\n  \"description\": \"When a cart has 5 or more items and a 10% coupon is applied, the displayed total is incorrect by a few cents. Reproduced on staging and production.\",\n  \"steps_to_reproduce\": \"1. Add 6 items to cart (mix of SKUs)\\n2. Apply coupon code 'WELCOME10'\\n3. View cart total\",\n  \"expected_result\": \"Total should be (subtotal × 0.90) rounded to 2 decimal places\",\n  \"actual_result\": \"Total is (subtotal × 0.90) − 0.03, off by 3 cents on every order\",\n  \"environment\": \"Chrome 124 on Windows 11\",\n  \"severity\": \"major\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/score",
+          "host": ["{{baseUrl}}"],
+          "path": ["score"]
+        }
+      }
+    },
+    {
+      "name": "4. Analyze — STRONG report (expect ≥ 85)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Login returns 500 on Safari 17 with valid credentials\",\n  \"description\": \"When a user signs in on Safari 17.4 (macOS 14.4), the server returns 500 instead of redirecting to the dashboard. Affects ~30% of macOS users in the last 24h based on Datadog error spike.\",\n  \"steps_to_reproduce\": \"1. Open https://app.example.com/login in Safari 17.4\\n2. Enter a valid test email and password\\n3. Click the 'Sign in' button\\n4. Observe the response\",\n  \"expected_result\": \"User is authenticated, session cookie is set, and the page redirects to /dashboard within 2 seconds.\",\n  \"actual_result\": \"Server responds with HTTP 500 'Internal Server Error'. Safari console shows a CORS preflight failure for /api/v1/auth.\",\n  \"environment\": \"macOS 14.4 · Safari 17.4 · app build 2.3.1 · account role: standard user\",\n  \"severity\": \"critical\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/analyze",
+          "host": ["{{baseUrl}}"],
+          "path": ["analyze"]
+        }
+      }
+    },
+    {
+      "name": "5. Analyze — MEDIOCRE report (expect ~50)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Login broken\",\n  \"description\": \"It doesn't work properly. Some users are reporting issues. Kind of weird. Please look into this thing asap.\",\n  \"steps_to_reproduce\": \"Try to login. Then it breaks. Do the normal flow.\",\n  \"expected_result\": \"login works\",\n  \"actual_result\": \"login broken\",\n  \"environment\": \"prod\",\n  \"severity\": \"\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/analyze",
+          "host": ["{{baseUrl}}"],
+          "path": ["analyze"]
+        }
+      }
+    },
+    {
+      "name": "6. Analyze — FAILING (all fields empty, expect ≤ 30)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"\",\n  \"description\": \"\",\n  \"steps_to_reproduce\": \"\",\n  \"expected_result\": \"\",\n  \"actual_result\": \"\",\n  \"environment\": \"\",\n  \"severity\": \"\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/analyze",
+          "host": ["{{baseUrl}}"],
+          "path": ["analyze"]
+        }
+      }
+    }
+  ]
+}

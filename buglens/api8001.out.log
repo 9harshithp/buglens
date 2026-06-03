@@ -1,0 +1,12 @@
+INFO:     127.0.0.1:1744 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:3204 - "GET / HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:3204 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:7839 - "GET /docs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:7839 - "GET /openapi.json HTTP/1.1" 200 OK
+INFO:     127.0.0.1:12893 - "GET / HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:12893 - "GET / HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:12893 - "GET / HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:12893 - "GET / HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:12893 - "GET / HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:11932 - "GET / HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:12759 - "GET /favicon.ico HTTP/1.1" 404 Not Found

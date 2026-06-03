@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>BugLens — Architecture</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --panel: #161b22;
+    --border: #2a2f3a;
+    --text: #cfd2da;
+    --muted: #8b95a5;
+    --brand: #8b5cf6;
+    --brand2: #5b6cff;
+    --accent: #ec4899;
+    --ok: #7ee2a8;
+    --warn: #ffd27a;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    padding: 2rem;
+  }
+  h1 { margin: 0 0 0.3rem 0; font-size: 1.7rem; }
+  .sub { color: var(--muted); margin-bottom: 2rem; }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1rem 1.2rem;
+  }
+  .card h3 {
+    margin: 0 0 0.5rem 0;
+    font-size: 0.95rem;
+    color: var(--text);
+    display: flex; align-items: center; gap: 0.4rem;
+  }
+  .card .pill {
+    display: inline-block;
+    padding: 1px 8px;
+    border-radius: 999px;
+    font-size: 0.7rem;
+    background: rgba(139,92,246,0.15);
+    color: #c4b5fd;
+    border: 1px solid rgba(139,92,246,0.35);
+  }
+  .card p { margin: 0.2rem 0; color: var(--muted); font-size: 0.85rem; line-height: 1.45; }
+  .flow {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.2rem 1.5rem;
+  }
+  .flow h2 { margin: 0 0 0.8rem 0; font-size: 1.1rem; }
+  .row {
+    display: flex; align-items: center; gap: 0.5rem;
+    padding: 0.5rem 0;
+    font-size: 0.92rem;
+  }
+  .row .step {
+    background: rgba(91,108,255,0.12);
+    border: 1px solid rgba(91,108,255,0.4);
+    color: #c7d2ff;
+    padding: 4px 10px; border-radius: 6px;
+    font-weight: 600; min-width: 28px; text-align: center;
+    font-size: 0.78rem;
+  }
+  .arrow { color: var(--muted); font-size: 0.7rem; margin-left: 0.4rem; }
+  .stack {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+  table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+  th, td { text-align: left; padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--border); }
+  th { color: var(--muted); font-weight: 500; }
+  .ok { color: var(--ok); }
+  .warn { color: var(--warn); }
+  .accent { color: var(--accent); }
+  .legend { display: flex; gap: 1rem; margin-top: 0.6rem; font-size: 0.78rem; color: var(--muted); }
+  .legend .dot { display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:4px; vertical-align:middle; }
+  .footer { color: var(--muted); font-size: 0.78rem; margin-top: 1.5rem; text-align: center; }
+</style>
+</head>
+<body>
+  <h1>🐞 BugLens — Architecture</h1>
+  <div class="sub">Defect Quality Checker · v1.0 · Streamlit + Python + FastAPI + OpenAI</div>
+
+  <!-- High-level layers -->
+  <div class="grid">
+    <div class="card">
+      <h3>🎨 Presentation <span class="pill">Streamlit</span></h3>
+      <p>7-field form, sidebar sample loader, Plotly score chart, issues expander, downloadable rewrite, JSON debug view.</p>
+    </div>
+    <div class="card">
+      <h3>🧠 Application <span class="pill">Python</span></h3>
+      <p>5 single-responsibility modules: validator, scorer, rewriter, analyzer. Pure functions, dataclasses, type hints.</p>
+    </div>
+    <div class="card">
+      <h3>🤖 Intelligence <span class="pill">OpenAI (opt.)</span></h3>
+      <p>GPT-4o-mini for the rewrite. Graceful local fallback when no key is set — the demo never depends on a network call.</p>
+    </div>
+    <div class="card">
+      <h3>🔌 Service <span class="pill">FastAPI</span></h3>
+      <p>REST surface: <code>/health</code>, <code>/analyze</code>, <code>/validate</code>, <code>/score</code>. Auto OpenAPI spec.</p>
+    </div>
+    <div class="card">
+      <h3>📦 Data <span class="pill">JSON / dataclass</span></h3>
+      <p>5 curated sample defects in <code>data/sample_defects.json</code>. <code>DefectReport</code> is the source-of-truth contract.</p>
+    </div>
+    <div class="card">
+      <h3>🧪 Quality <span class="pill">pytest</span></h3>
+      <p>18 tests across 4 files. Validator, scorer, rewriter (with and without API key), end-to-end pipeline.</p>
+    </div>
+  </div>
+
+  <!-- Data flow -->
+  <div class="flow">
+    <h2>🔁 Data flow — one analyze call</h2>
+    <div class="row"><span class="step">1</span> User submits the form (or API receives JSON) &nbsp;<span class="arrow">→</span>&nbsp; <code>payload</code></div>
+    <div class="row"><span class="step">2</span> <code>DefectReport.from_dict(payload)</code> &nbsp;<span class="arrow">→</span>&nbsp; normalised report</div>
+    <div class="row"><span class="step">3</span> <code>validator.validate(report)</code> &nbsp;<span class="arrow">→</span>&nbsp; <code>List[ValidationIssue]</code></div>
+    <div class="row"><span class="step">4</span> <code>scorer.score(report, issues)</code> &nbsp;<span class="arrow">→</span>&nbsp; <code>QualityScore</code> (0–100, grade, verdict, sections)</div>
+    <div class="row"><span class="step">5</span> <code>rewriter.rewrite(report, issues)</code> &nbsp;<span class="arrow">→</span>&nbsp; <code>RewriteResult</code> (text + suggestions + grammar notes + mode)</div>
+    <div class="row"><span class="step">6</span> <code>analyzer</code> bundles everything &nbsp;<span class="arrow">→</span>&nbsp; flat JSON the UI / API returns</div>
+  </div>
+
+  <!-- Stack & design choices -->
+  <div class="stack" style="margin-top: 1.5rem;">
+    <div class="card">
+      <h3>🧱 Tech stack &amp; why</h3>
+      <table>
+        <tr><th>Layer</th><th>Pick</th><th>Why</th></tr>
+        <tr><td>UI</td><td>Streamlit</td><td>One-file front-end, hot reload, perfect for QA tools.</td></tr>
+        <tr><td>Scoring</td><td>Pure Python rules</td><td>Deterministic, explainable, zero-cost. LLM is a booster.</td></tr>
+        <tr><td>Rewrite</td><td>OpenAI + local fb</td><td>Cheap, structured JSON output. Fallback = no demo dead-end.</td></tr>
+        <tr><td>API</td><td>FastAPI</td><td>OpenAPI auto-gen → Postman import. Pydantic validation.</td></tr>
+        <tr><td>Tests</td><td>pytest</td><td>Industry default. 18 tests, ~120 ms total.</td></tr>
+        <tr><td>Charts</td><td>Plotly</td><td>Hover tooltips, color-graded bars beat plain numbers for a 60-sec demo.</td></tr>
+      </table>
+    </div>
+
+    <div class="card">
+      <h3>📐 Design choices called out</h3>
+      <p><span class="ok">✓</span> Rule-based scoring as the source of truth. LLM is a *booster* on top.</p>
+      <p><span class="ok">✓</span> Rewriter degrades to a deterministic local path. Demo never breaks.</p>
+      <p><span class="ok">✓</span> <code>DefectReport</code> dataclass is the data contract — DB can drop in later.</p>
+      <p><span class="ok">✓</span> Single-responsibility modules: each one is independently testable.</p>
+      <p><span class="warn">⚠</span> No auth, no DB, no history. Deliberate v1 cuts — see <em>Roadmap</em> in README.</p>
+      <p><span class="warn">⚠</span> Grammar check is rule-based; the LLM-driven grammar hook is wired but disabled by default.</p>
+    </div>
+  </div>
+
+  <div class="legend">
+    <span><span class="dot" style="background: var(--ok)"></span>shipped</span>
+    <span><span class="dot" style="background: var(--warn)"></span>deliberate cut</span>
+    <span><span class="dot" style="background: var(--accent)"></span>optional / fallback</span>
+  </div>
+
+  <div class="footer">
+    BugLens — Defect Quality Checker · open the source in <code>interview_prep/03_architecture.md</code> for the long-form write-up.
+  </div>
+</body>
+</html>
