@@ -89,3 +89,41 @@ def test_title_too_short_warning():
     v = DefectValidator()
     issues = v.validate(DefectReport.from_dict(report))
     assert any(i.code == "TITLE_TOO_SHORT" for i in issues)
+
+
+def test_title_too_vague_warning():
+    report = _strong_report()
+    report["title"] = "Login issue"
+    v = DefectValidator()
+    issues = v.validate(DefectReport.from_dict(report))
+    assert any(i.code == "TITLE_TOO_VAGUE" for i in issues)
+
+
+def test_description_missing_context_emits_info():
+    report = _strong_report()
+    report["description"] = (
+        "Checkout summary total is wrong on the page and the numbers look inconsistent there."
+    )
+    v = DefectValidator()
+    issues = v.validate(DefectReport.from_dict(report))
+    assert any(i.code == "DESCRIPTION_MISSING_CONTEXT" for i in issues)
+
+
+def test_steps_without_actions_are_flagged():
+    report = _strong_report()
+    report["steps_to_reproduce"] = (
+        "1. Account screen is visible\n"
+        "2. Valid credentials are present\n"
+        "3. Dashboard state is expected"
+    )
+    v = DefectValidator()
+    issues = v.validate(DefectReport.from_dict(report))
+    assert any(i.code == "STEPS_LACK_ACTIONS" for i in issues)
+
+
+def test_actual_result_without_evidence_emits_info():
+    report = _strong_report()
+    report["actual_result"] = "The page behaves incorrectly after the submit attempt completes."
+    v = DefectValidator()
+    issues = v.validate(DefectReport.from_dict(report))
+    assert any(i.code == "ACTUAL_RESULT_MISSING_EVIDENCE" for i in issues)

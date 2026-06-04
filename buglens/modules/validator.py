@@ -24,6 +24,10 @@ VAGUE_TERMS = {
     "problem", "bug", "error", "weird thing",
 }
 
+TITLE_VAGUE_TERMS = {
+    "bug", "issue", "problem", "broken", "error", "failure", "not working",
+}
+
 # Numbers like "1.", "1)", "step 1" at line starts → a numbered list.
 NUMBERED_STEP_RE = re.compile(r"^\s*(\d+[.)]|step\s*\d+)\s+", re.IGNORECASE | re.MULTILINE)
 BULLETED_STEP_RE = re.compile(r"^\s*[-*•]\s+", re.MULTILINE)
@@ -36,6 +40,21 @@ ENV_PATTERN_RE = re.compile(
 )
 # Tokens that look like version strings: 1.2.3, v2, 2024.1, build 456.
 VERSION_RE = re.compile(r"\b(v?\d+(\.\d+){1,3}|build\s*\d+)\b", re.IGNORECASE)
+IMPACT_HINT_RE = re.compile(
+    r"\b(affects?|blocks?|prevents?|fails?|unable|cannot|can't|intermittent|always|sometimes|"
+    r"after|before|during|since|started|regression|customer|user|users|rate|percent|%)\b",
+    re.IGNORECASE,
+)
+EVIDENCE_HINT_RE = re.compile(
+    r"\b(error|exception|timeout|crash|freeze|blank|stuck|redirect|status|http|response|"
+    r"console|log|toast|message|spinner|latency|slow|failed|failure|500|404|403)\b",
+    re.IGNORECASE,
+)
+ACTION_VERB_RE = re.compile(
+    r"\b(open|click|tap|select|enter|type|submit|login|log in|navigate|go|create|update|delete|"
+    r"upload|download|refresh|search|filter|call|send|trigger)\b",
+    re.IGNORECASE,
+)
 
 
 @dataclass
@@ -152,6 +171,15 @@ class DefectValidator:
                 message="Title is very short — readers can't tell what failed.",
                 suggestion="State the symptom + the area, e.g. 'Login button 500s on Safari 17'.",
             ))
+        normalized = re.sub(r"[^a-z0-9\s]", " ", title.lower()).strip()
+        if normalized in TITLE_VAGUE_TERMS or (
+            len(normalized.split()) <= 2 and any(term in normalized for term in TITLE_VAGUE_TERMS)
+        ):
+            issues.append(ValidationIssue(
+                field="title", severity="warning", code="TITLE_TOO_VAGUE",
+                message="Title is too generic to help triage quickly.",
+                suggestion="Name the feature plus the visible symptom, e.g. 'Checkout submit button spins forever'.",
+            ))
         if len(title) > 200:
             issues.append(ValidationIssue(
                 field="title", severity="warning", code="TITLE_TOO_LONG",
@@ -171,6 +199,12 @@ class DefectValidator:
                 field="description", severity="warning", code="DESCRIPTION_TOO_BRIEF",
                 message="Description is very brief.",
                 suggestion="Add 1–2 sentences of context: when did it start, who's affected, how often.",
+            ))
+        if len(words) >= 10 and not IMPACT_HINT_RE.search(desc):
+            issues.append(ValidationIssue(
+                field="description", severity="info", code="DESCRIPTION_MISSING_CONTEXT",
+                message="Description lacks timing, impact, or frequency context.",
+                suggestion="Mention when it happens, who it affects, and whether it is constant or intermittent.",
             ))
         vague_hits = [w for w in words if w.lower().strip(".,!?") in VAGUE_TERMS]
         if len(vague_hits) >= 2:
@@ -209,6 +243,13 @@ class DefectValidator:
                 message="At least 2 actionable steps are required to reproduce reliably.",
                 suggestion="List the exact clicks / inputs / API calls the reader should make.",
             ))
+        if real_steps and not any(ACTION_VERB_RE.search(line) for line in real_steps):
+            issues.append(ValidationIssue(
+                field="steps_to_reproduce", severity="warning",
+                code="STEPS_LACK_ACTIONS",
+                message="Reproduction steps do not describe clear user or API actions.",
+                suggestion="Use concrete actions like open, click, enter, call, upload, or refresh.",
+            ))
         return issues
 
     def _check_expected_actual(self, report: DefectReport) -> List[ValidationIssue]:
@@ -223,6 +264,12 @@ class DefectValidator:
                     message=f"'{self._label(name)}' is too short to be useful.",
                     suggestion="Be specific: include the exact UI text, response, or state you saw/expected.",
                 ))
+        if report.actual_result and len(report.actual_result.split()) >= 3 and not EVIDENCE_HINT_RE.search(report.actual_result):
+            issues.append(ValidationIssue(
+                field="actual_result", severity="info", code="ACTUAL_RESULT_MISSING_EVIDENCE",
+                message="Actual result could use more observable evidence.",
+                suggestion="Include the exact error text, response code, visible symptom, or log clue that appeared.",
+            ))
         if report.expected_result and report.actual_result:
             if report.expected_result.strip().lower() == report.actual_result.strip().lower():
                 issues.append(ValidationIssue(

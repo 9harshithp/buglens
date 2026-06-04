@@ -449,6 +449,54 @@ def load_samples() -> list[dict]:
         return json.load(fh)
 
 
+EMPTY_FORM_DATA = {
+    "title": "",
+    "description": "",
+    "steps_to_reproduce": "",
+    "expected_result": "",
+    "actual_result": "",
+    "environment": "",
+    "severity": "",
+}
+
+
+FORM_FIELD_KEYS = {
+    "title": "defect_title",
+    "description": "defect_description",
+    "steps_to_reproduce": "defect_steps_to_reproduce",
+    "expected_result": "defect_expected_result",
+    "actual_result": "defect_actual_result",
+    "environment": "defect_environment",
+    "severity": "defect_severity",
+}
+
+
+def _ensure_form_version() -> None:
+    if "defect_form_version" not in st.session_state:
+        st.session_state["defect_form_version"] = 0
+
+
+def _widget_key(field: str) -> str:
+    _ensure_form_version()
+    return f"{FORM_FIELD_KEYS[field]}_{st.session_state['defect_form_version']}"
+
+
+def sync_form_state(data: dict | None = None, *, reset_widgets: bool = False) -> None:
+    source = EMPTY_FORM_DATA.copy()
+    if data:
+        source.update(data)
+    st.session_state["form_data"] = source.copy()
+    if reset_widgets:
+        st.session_state["defect_form_version"] = st.session_state.get("defect_form_version", 0) + 1
+
+
+def clear_analysis_form() -> None:
+    sync_form_state(reset_widgets=True)
+    st.session_state.pop("analysis_result", None)
+    st.session_state.pop("analysis_payload", None)
+    st.session_state["recipient_email"] = ""
+
+
 # --- sidebar -----------------------------------------------------------------
 
 with st.sidebar:
@@ -472,7 +520,7 @@ with st.sidebar:
     )
     if sample_choice and sample_choice != "— blank form —":
         chosen = next(s for s in samples if s["name"] == sample_choice)
-        st.session_state["form_data"] = chosen["data"]
+        sync_form_state(chosen["data"], reset_widgets=True)
         st.success(f"Loaded: **{sample_choice}**")
 
     st.divider()
@@ -577,7 +625,11 @@ st.caption(
 
 # --- form --------------------------------------------------------------------
 
-form_data = st.session_state.get("form_data", {})
+if "form_data" not in st.session_state:
+    sync_form_state()
+
+_ensure_form_version()
+form_data = st.session_state.get("form_data", EMPTY_FORM_DATA.copy())
 
 col_form, col_out = st.columns([1.05, 1.2], gap="large")
 
@@ -585,31 +637,31 @@ with col_form:
     st.markdown('<div class="bl-section"><h3>📝 Defect Report Input</h3></div>',
                 unsafe_allow_html=True)
     with st.form("defect_form", clear_on_submit=False):
-        title = st.text_input("Bug title", value=form_data.get("title", ""),
+        title = st.text_input("Bug title", value=form_data.get("title", ""), key=_widget_key("title"),
                               placeholder="Login button 500s on Safari 17")
         description = st.text_area(
-            "Description", value=form_data.get("description", ""), height=100,
+            "Description", value=form_data.get("description", ""), key=_widget_key("description"), height=100,
             placeholder="What happened, when, who is affected, how often?",
         )
         steps_to_reproduce = st.text_area(
-            "Steps to reproduce", value=form_data.get("steps_to_reproduce", ""), height=120,
+            "Steps to reproduce", value=form_data.get("steps_to_reproduce", ""), key=_widget_key("steps_to_reproduce"), height=120,
             placeholder="1. Go to /login\n2. Enter email + password\n3. Click 'Sign in'",
         )
         c1, c2 = st.columns(2)
         with c1:
             expected_result = st.text_area(
-                "Expected result", value=form_data.get("expected_result", ""), height=80,
+                "Expected result", value=form_data.get("expected_result", ""), key=_widget_key("expected_result"), height=80,
                 placeholder="User is logged in and redirected to /dashboard",
             )
         with c2:
             actual_result = st.text_area(
-                "Actual result", value=form_data.get("actual_result", ""), height=80,
+                "Actual result", value=form_data.get("actual_result", ""), key=_widget_key("actual_result"), height=80,
                 placeholder="500 error: 'Internal Server Error'",
             )
         c3, c4 = st.columns(2)
         with c3:
             environment = st.text_input(
-                "Environment", value=form_data.get("environment", ""),
+                "Environment", value=form_data.get("environment", ""), key=_widget_key("environment"),
                 placeholder="macOS 14.4 · Safari 17.4 · app v2.3.1",
             )
         with c4:
@@ -619,9 +671,18 @@ with col_form:
                 index=["", "blocker", "critical", "major", "minor", "trivial"].index(
                     form_data.get("severity", "")
                 ) if form_data.get("severity", "") in ["", "blocker", "critical", "major", "minor", "trivial"] else 0,
+                key=_widget_key("severity"),
             )
 
-        submitted = st.form_submit_button("🔍 Analyze defect", use_container_width=True)
+        action_col1, action_col2 = st.columns(2)
+        with action_col1:
+            submitted = st.form_submit_button("🔍 Analyze defect", use_container_width=True)
+        with action_col2:
+            cleared = st.form_submit_button("Clear", use_container_width=True)
+
+    if cleared:
+        clear_analysis_form()
+        st.rerun()
 
 # --- analysis ----------------------------------------------------------------
 
@@ -637,6 +698,7 @@ with col_out:
             "expected_result": expected_result, "actual_result": actual_result,
             "environment": environment, "severity": severity,
         }
+        st.session_state["form_data"] = payload.copy()
         with st.spinner("Analyzing…"):
             analyzer = DefectAnalyzer(model=model)
             result = analyzer.analyze(payload)
