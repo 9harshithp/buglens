@@ -1031,11 +1031,11 @@ def main():
     ]
     for fn in builders:
         fn(prs)
-        print(f"  ✓ {fn.__name__}")
+        print("  [OK] " + fn.__name__)
 
     out = Path(__file__).parent / "BugLens_Presentation.pptx"
     prs.save(str(out))
-    print(f"\n✅  Saved → {out}")
+    print("Saved -> " + str(out))
 
 if __name__ == "__main__":
     main()
