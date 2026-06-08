@@ -10,3 +10,20 @@ INFO:     127.0.0.1:12893 - "GET / HTTP/1.1" 404 Not Found
 INFO:     127.0.0.1:12893 - "GET / HTTP/1.1" 404 Not Found
 INFO:     127.0.0.1:11932 - "GET / HTTP/1.1" 404 Not Found
 INFO:     127.0.0.1:12759 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:1820 - "GET / HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:8272 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:8272 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:10110 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:7955 - "GET /validate HTTP/1.1" 405 Method Not Allowed
+INFO:     127.0.0.1:7964 - "GET /score HTTP/1.1" 405 Method Not Allowed
+INFO:     127.0.0.1:7970 - "GET /score HTTP/1.1" 405 Method Not Allowed
+INFO:     127.0.0.1:8033 - "GET /analyze HTTP/1.1" 405 Method Not Allowed
+INFO:     127.0.0.1:8510 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:5612 - "POST /validate HTTP/1.1" 422 Unprocessable Content
+INFO:     127.0.0.1:13213 - "POST /validate HTTP/1.1" 422 Unprocessable Content
+INFO:     127.0.0.1:13222 - "POST /score HTTP/1.1" 422 Unprocessable Content
+INFO:     127.0.0.1:1760 - "POST /score HTTP/1.1" 200 OK
+INFO:     127.0.0.1:2761 - "GET /score HTTP/1.1" 405 Method Not Allowed
+INFO:     127.0.0.1:14089 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:10182 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:1637 - "POST /score HTTP/1.1" 422 Unprocessable Content

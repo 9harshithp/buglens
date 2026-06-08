@@ -69,6 +69,16 @@ class ValidationIssue:
     def to_dict(self) -> Dict[str, str]:
         return asdict(self)
 
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> "ValidationIssue":
+        return cls(
+            field=str(data.get("field", "") or ""),
+            severity=str(data.get("severity", "") or ""),
+            code=str(data.get("code", "") or ""),
+            message=str(data.get("message", "") or ""),
+            suggestion=str(data.get("suggestion", "") or ""),
+        )
+
 
 @dataclass
 class DefectReport:

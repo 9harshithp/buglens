@@ -7,6 +7,7 @@ from .scorer import DefectScorer, QualityScore, SectionScore
 from .ai_rewriter import DefectRewriter, RewriteResult
 from .analyzer import DefectAnalyzer, AnalysisResult
 from .mailer import send_email_report, smtp_configured, smtp_configuration_status
+from .storage import BugLensStore
 
 __all__ = [
     "DefectValidator",
@@ -22,4 +23,5 @@ __all__ = [
     "send_email_report",
     "smtp_configured",
     "smtp_configuration_status",
+    "BugLensStore",
 ]

@@ -34,6 +34,15 @@ class AnalysisResult:
     def to_json(self, indent: int = 2) -> str:
         return json.dumps(self.to_dict(), indent=indent, ensure_ascii=False)
 
+    @classmethod
+    def from_dict(cls, data: Dict) -> "AnalysisResult":
+        return cls(
+            report=DefectReport.from_dict(data.get("report", {})),
+            issues=[ValidationIssue.from_dict(issue) for issue in data.get("issues", [])],
+            score=QualityScore.from_dict(data.get("score", {})),
+            rewrite=RewriteResult.from_dict(data.get("rewrite", {})),
+        )
+
 
 class DefectAnalyzer:
     """Single-call orchestrator: validate → score → rewrite."""

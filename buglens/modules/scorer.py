@@ -37,6 +37,15 @@ class SectionScore:
     def to_dict(self) -> Dict:
         return asdict(self)
 
+    @classmethod
+    def from_dict(cls, data: Dict) -> "SectionScore":
+        return cls(
+            label=str(data.get("label", "") or ""),
+            score=int(data.get("score", 0) or 0),
+            max_score=int(data.get("max_score", 0) or 0),
+            rationale=str(data.get("rationale", "") or ""),
+        )
+
 
 @dataclass
 class QualityScore:
@@ -52,6 +61,15 @@ class QualityScore:
             "verdict": self.verdict,
             "sections": [s.to_dict() for s in self.sections],
         }
+
+    @classmethod
+    def from_dict(cls, data: Dict) -> "QualityScore":
+        return cls(
+            total=int(data.get("total", 0) or 0),
+            grade=str(data.get("grade", "") or ""),
+            verdict=str(data.get("verdict", "") or ""),
+            sections=[SectionScore.from_dict(section) for section in data.get("sections", [])],
+        )
 
 
 class DefectScorer:

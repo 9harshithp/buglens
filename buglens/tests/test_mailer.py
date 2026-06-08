@@ -7,8 +7,15 @@ import pytest
 
 try:
     from .modules import send_email_report, smtp_configured, smtp_configuration_status
+    from ..modules import mailer as mailer_module
 except ImportError:
     from modules import send_email_report, smtp_configured, smtp_configuration_status
+    from modules import mailer as mailer_module
+
+
+@pytest.fixture(autouse=True)
+def isolate_smtp_config(tmp_path, monkeypatch):
+    monkeypatch.setattr(mailer_module, "_CONFIG_PATH", tmp_path / "smtp_config.json")
 
 
 def test_smtp_configured_requires_core_env(monkeypatch):

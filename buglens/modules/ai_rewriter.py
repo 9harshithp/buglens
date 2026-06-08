@@ -44,6 +44,16 @@ class RewriteResult:
     def to_dict(self) -> Dict:
         return asdict(self)
 
+    @classmethod
+    def from_dict(cls, data: Dict) -> "RewriteResult":
+        return cls(
+            rewritten_text=str(data.get("rewritten_text", "") or ""),
+            suggestions=list(data.get("suggestions", []) or []),
+            grammar_notes=list(data.get("grammar_notes", []) or []),
+            mode=str(data.get("mode", "local") or "local"),
+            model=data.get("model"),
+        )
+
 
 # --- Local (no-network) rewriter ---------------------------------------------
 

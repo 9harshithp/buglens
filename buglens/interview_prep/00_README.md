@@ -19,6 +19,7 @@ section in the email:
 | 6 | `06_evidence_of_testing.md` | Evidence of quality |
 | 7 | `07_demo_script.md` | Completely working product demo |
 | 8 | `08_reflection_learnings.md` | Reflection and ownership |
+| 9 | `09_brd.md` | Business requirements / enterprise framing |
 | — | `architecture.html` | Open in a browser tab during the demo as a visual anchor |
 | — | `00_README.md` | This file |
 
